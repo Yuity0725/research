@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1>CosMo</h1>
+    <div class="talk_div">
+        <div class="table_div">
+            <table id="talk_table">
+                <tr class="image">
+                    <td class="image">
+                        <div class="balloon1-left">
+                            <img src={{ init_img_path }} alt="">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="input_div">
+            <div class="modifier_form">
+                <input type="text" id="modifier_input">
+                <button id="send">send</button>
+            </div>
+        </div>    
+    </div>
+    <script>
+        const init_img_path = {{init_img_path| tojson}};
+    </script>
+    <script defer type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script defer type="text/javascript" src="../static/js/home.js"></script>
+</body>
+</html>

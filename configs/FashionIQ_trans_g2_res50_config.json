@@ -24,7 +24,7 @@
   "margin": 12,
   "dataset": "fashionIQ_dress",
   "wandb_project_name": "CoSMo.pytorch",
-  "wandb_account_name": "your_account_name_here",
+  "wandb_account_name": "yuity0725",
   "device_idx": "",
   "experiment_description": ""
 }

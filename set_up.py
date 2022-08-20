@@ -95,3 +95,24 @@ def setup_experiment(config):
     wandb.init(config=config, name=experiment_name, project=project_name,
                entity=wandb_account_name, tags=tags)
     return export_root, config
+
+def setup_demo(config):
+    device_info = set_up_gpu(config['device_idx'])
+    config.update(device_info)
+
+    random_seed = fix_random_seed_as(config['random_seed'])
+    config['random_seed'] = random_seed
+    export_root = create_experiment_export_folder(config['experiment_dir'], config['experiment_description'])
+    export_config_as_json(config, export_root)
+    config['export_root'] = export_root
+
+    pp.pprint(config, width=1)
+    #os.environ['WANDB_SILENT'] = "true"
+    #tags = generate_tags(config)
+    #project_name = config['wandb_project_name']
+    #wandb_account_name = config['wandb_account_name']
+    #experiment_name = config['experiment_description']
+    #experiment_name = experiment_name if config['random_seed'] != -1 else experiment_name + "_{}".format(random_seed)
+    #wandb.init(config=config, name=experiment_name, project=project_name,
+    #           entity=wandb_account_name, tags=tags)
+    return config

@@ -25,6 +25,10 @@ class AbstractBaseEvaluator(abc.ABC):
         all_test_features, all_test_attributes = self.extract_test_features_and_attributes()
         all_original_query_features, all_composed_query_features, all_query_attributes, all_ref_attributes = \
             self.extract_query_features_and_attributes()
+        
+        print("all_test_attributes:", all_test_attributes[0])
+        print("all_query_attributes:", all_query_attributes[0])
+        print("all_ref_attributes:", all_ref_attributes[0])
 
         # Make sure test_loader is not shuffled! Otherwise, this will be incorrect
         if self.attribute_matching_matrix is None:

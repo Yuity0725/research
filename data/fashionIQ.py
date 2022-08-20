@@ -5,8 +5,8 @@ import os
 from data.utils import _get_img_from_path
 from data.abc import AbstractBaseDataset, AbstractBaseTestDataset
 
-_DEFAULT_FASHION_IQ_DATASET_ROOT = '/data/image_retrieval/fashionIQ'
-_DEFAULT_FASHION_IQ_VOCAB_PATH = '/data/image_retrieval/fashionIQ/fashion_iq_vocab.pkl'
+_DEFAULT_FASHION_IQ_DATASET_ROOT = '../FashionIQ_dataset'
+_DEFAULT_FASHION_IQ_VOCAB_PATH = '../FashionIQ_dataset/fashion_iq_vocab.pkl'
 
 
 def _get_img_caption_json(dataset_root, clothing_type, split):
@@ -22,7 +22,7 @@ def _get_img_split_json_as_list(dataset_root, clothing_type, split):
 
 
 def _create_img_path_from_id(root, id):
-    return os.path.join(root, '{}.jpg'.format(id))
+    return os.path.join(root, '{}.png'.format(id))
 
 
 def _get_img_path_using_idx(img_caption_data, img_root, idx, is_ref=True):

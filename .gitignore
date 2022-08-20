@@ -174,3 +174,10 @@ fabric.properties
 mappings.zip
 experiments/
 wandb/
+
+# dataset
+static/image/
+*.png
+*.PNG
+*.jpg
+*.JPG
