@@ -177,6 +177,7 @@ wandb/
 
 # dataset
 static/image/
+interface/public/images/
 *.png
 *.PNG
 *.jpg
