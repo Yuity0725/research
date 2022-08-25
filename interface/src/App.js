@@ -7,7 +7,7 @@ import { Col, Container, Row } from 'react-bootstrap'
 
 function App() {
 
-  const [modifier, setModifier] = useState("a");
+  const [modifier, setModifier] = useState("");
   const [image, setImage] = useState("");
   const [favoriteDresses, setFavoriteDress] = useState([]);
 
@@ -31,10 +31,47 @@ function App() {
       })
   }
 
+  // 音声認識
+  const Recognizer = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognizer = new Recognizer();
+  // 言語設定
+  recognizer.lang = 'ja-JP';
+  // 認識
+  recognizer.onresult = (e) => {
+    const results = e.results[0][0].transcript;
+    console.log(results);
+    setModifier(results);
+  }
+  let isListening = false;
+  const recognize = (e) => {
+    if (isListening) stopRecognizer();
+    else startRecognizer();
+    console.log(isListening)
+  }
+
+  const startRecognizer = () => {
+    if (isListening) return;
+    console.log('start')
+    recognizer.start();
+    isListening = true;
+  }
+
+  const stopRecognizer = () => {
+    if (!isListening) return;
+    console.log('stop')
+    recognizer.stop();
+    isListening = false;
+  }
+
+  useEffect(() => {
+    submitText();
+  }, [modifier])
+
   // 通信
   const API_KEY = "cd70e208-d0a2-597a-fe54-4d45b34e3556:fx"
   const API_URL = "https://api-free.deepl.com/v2/translate"
   const submitText = async () => {
+    console.log(modifier)
     let content = encodeURI('auth_key=' + API_KEY + '&text=' + modifier + '&source_lang=JA&target_lang=EN');
     let url = API_URL + '?' + content;
 
@@ -76,6 +113,7 @@ function App() {
             <img src={`${process.env.PUBLIC_URL}/images/${image}.png`} alt="suggestion" className="suggestion" />
           </Col>
           <Col md={{ span: 2, offset: 8 }} className='modifierArea'>
+            <button onClick={recognize}>認識開始</button>
             <input type="text" placeholder="Enter modifier" onChange={handleModifier} />
             <button onClick={submitText}>送信</button>
           </Col>
