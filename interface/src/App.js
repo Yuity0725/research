@@ -1,6 +1,6 @@
 import './App.css';
 
-import React, { useEffect, useState, } from 'react';
+import React, { useEffect, useRef, useState, } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Col, Container, Row } from 'react-bootstrap'
@@ -10,17 +10,46 @@ function App() {
   const [modifier, setModifier] = useState("");
   const [image, setImage] = useState("");
   const [favoriteDresses, setFavoriteDress] = useState([]);
+  const [recognitionStatus, setRecognitionStatus] = useState("認識開始");
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [log, setLog] = useState([]);
+
+  const refFirstRef = useRef(true);
 
   // stateをセット
   const handleModifier = e => setModifier(e.target.value);
+  const handleVisible = e => {
+    speechText("こんなドレスはどうですか？")
+    setVisible(true);
+  };
   const addFavoriteDress = (newFavoriteDress) => {
     setFavoriteDress([newFavoriteDress, ...favoriteDresses])
   }
 
   // 読み込み時
   useEffect(() => {
-    getNewImage()
-  }, [])
+    getImage();
+  }, [modifier])
+
+  // 画像の読み込み
+  const getImage = () => {
+    // 一度だけ実行
+    if (process.env.NODE_ENV === "development") {
+      if (refFirstRef.current) {
+        refFirstRef.current = false;
+        return;
+      }
+    }
+
+    if (modifier.length === 0) {
+      // 読み込み時
+      getNewImage();
+    } else {
+      // 更新時
+      submitText();
+    }
+  }
 
   // 新しい画像を取得
   const getNewImage = async () => {
@@ -29,6 +58,15 @@ function App() {
         setImage(response.data)
         console.log(response.data)
       })
+  }
+
+  // 読み上げ
+  const speechText = (text) => {
+    console.log(text);
+    const speech = new SpeechSynthesisUtterance();
+    speech.text = text;
+    speech.lang = 'ja-JP';
+    window.speechSynthesis.speak(speech)
   }
 
   // 音声認識
@@ -41,11 +79,14 @@ function App() {
     const results = e.results[0][0].transcript;
     console.log(results);
     setModifier(results);
+    console.log('stop')
+    recognizer.stop();
+    isListening = false;
+    setRecognitionStatus("認識開始");
   }
   let isListening = false;
   const recognize = (e) => {
-    if (isListening) stopRecognizer();
-    else startRecognizer();
+    if (!isListening) startRecognizer();
     console.log(isListening)
   }
 
@@ -54,18 +95,8 @@ function App() {
     console.log('start')
     recognizer.start();
     isListening = true;
+    setRecognitionStatus("認識終了");
   }
-
-  const stopRecognizer = () => {
-    if (!isListening) return;
-    console.log('stop')
-    recognizer.stop();
-    isListening = false;
-  }
-
-  useEffect(() => {
-    submitText();
-  }, [modifier])
 
   // 通信
   const API_KEY = "cd70e208-d0a2-597a-fe54-4d45b34e3556:fx"
@@ -90,6 +121,8 @@ function App() {
             console.log(responseImage.data);
             if (responseImage.data["new_turn"]) addFavoriteDress(image);
             setImage(responseImage.data["new_image"]);
+            setLoading(false);
+            speechText("こちらはどうですか？")
           })
           .catch((errorImage) => {
             console.log(errorImage);
@@ -98,35 +131,49 @@ function App() {
         console.log("Could not reach the API: ");
         console.log(errorTrans.message);
       })
+
+    setLoading(true);
   }
 
   return (
-    <div className="App">
-      <Container>
-        <Row>
-          <Col className='questionArea'>
-            <p>こんなドレスはどうですか？</p>
-          </Col>
-        </Row>
-        <Row>
-          <Col md={{ span: 6, offset: 2 }}>
-            <img src={`${process.env.PUBLIC_URL}/images/${image}.png`} alt="suggestion" className="suggestion" />
-          </Col>
-          <Col md={{ span: 2, offset: 8 }} className='modifierArea'>
-            <button onClick={recognize}>認識開始</button>
-            <input type="text" placeholder="Enter modifier" onChange={handleModifier} />
-            <button onClick={submitText}>送信</button>
-          </Col>
-        </Row>
-        <Row className='favoriteArea'>
-          <Col md={{ span: 8, offset: 2 }}>
-            {favoriteDresses.map((favoriteDress) =>
-              <img src={`${process.env.PUBLIC_URL}/images/${favoriteDress}.png`} alt="suggestion" key={favoriteDress} className="favorite" />
-            )}
-          </Col>
-        </Row>
-      </Container>
-    </div>
+    <Container>
+      <Row>
+        <Col md={10}>
+          <div id='start' style={{ visibility: !visible ? "visible" : "hidden" }} onClick={handleVisible}>
+            <button>開始</button>
+          </div>
+          <div className="loader" style={{ visibility: loading ? "visible" : "hidden" }}>Loading...</div>
+          <div id="main" className="App" style={{ visibility: visible ? "visible" : "hidden" }}>
+            <Container>
+              <Row>
+                <Col className='questionArea'>
+                  <p>こんなドレスはどうですか？</p>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={{ span: 6, offset: 2 }} className="suggestion" >
+                  <img src={`${process.env.PUBLIC_URL}/images/${image}.png`} alt="suggestion" />
+                </Col>
+                <Col md={{ span: 2, offset: 8 }} className='modifierArea'>
+                  <button onClick={recognize}>{recognitionStatus}</button>
+                  <input type="text" placeholder="Enter modifier" onChange={handleModifier} />
+                  <button onClick={submitText}>送信</button>
+                </Col>
+              </Row>
+              <Row className='favoriteArea'>
+                <Col md={{ span: 8, offset: 2 }}>
+                  {favoriteDresses.map((favoriteDress) =>
+                    <img src={`${process.env.PUBLIC_URL}/images/${favoriteDress}.png`} alt="suggestion" key={favoriteDress} className="favorite" />
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          </div>
+        </Col>
+        <Col md={2}>
+        </Col>
+      </Row>
+    </Container>
   );
 }
 
