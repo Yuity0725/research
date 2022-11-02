@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 
@@ -21,6 +22,8 @@ class Net_demo(nn.Module):
         print("composed_features:", composed_features.shape)
         composed_features = self.upper_image_encoder(composed_features)
         print("composed_features:",composed_features.shape)
+        del mid_image_features, text_features, _
+        torch.cuda.empty_cache()
         return composed_features
     
     def _extract_image_features(self, image):

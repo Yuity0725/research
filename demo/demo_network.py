@@ -25,6 +25,9 @@ text_transform = text_transform_factory(config={'vocabulary': vocabulary})
 models = create_models(configs, vocabulary)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 net = Net_demo(models).to(DEVICE)
+if DEVICE == 'cuda':
+    net = torch.nn.DataParallel(net) # make parallel
+    torch.backends.cudnn.benchmark = True
 
 # 推論モード
 net.eval()
@@ -40,7 +43,7 @@ new_model_params = {}
 for key in model_params["model_state_dict"].keys():
     try:
         for key1 in model_params["model_state_dict"][key].keys():
-            new_model_params[key + ".module." + key1] = model_params["model_state_dict"][key][key1]
+            new_model_params["module." + key + ".module." + key1] = model_params["model_state_dict"][key][key1]
     except AttributeError:
         continue
 
