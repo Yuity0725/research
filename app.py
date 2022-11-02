@@ -109,29 +109,37 @@ def get_dress():
 
         best_similarity_matrix = torch.Tensor().cuda()
         best_similarity_idx = torch.Tensor().cuda()
-
+        all_similarity_matrix = torch.Tensor().cuda()
+        all_file_name_list = []
         with torch.no_grad():
             for i, (images, filename_list) in enumerate(demo_sample_dataloader):
                 image_features = net.module._extract_image_features(images)
-                if i == 0:
-                    print(image_features)
                 similarity_matrix = composed_features.mm(image_features.t())
-                if i == 0:
-                    print(similarity_matrix)
+                all_similarity_matrix = torch.cat([all_similarity_matrix, similarity_matrix], dim=1)
+                all_file_name_list += filename_list
+                if i % 10 == 0:
+                    print(i, "/", len(demo_sample_dataloader))
+                continue
                 similarity_matrix = torch.cat([best_similarity_matrix, similarity_matrix], dim=1)
                 best_similarity_matrix, similarity_idx = similarity_matrix.topk(5)
                 if i == 0:
+                    for idx in similarity_idx[0]:
+                        best_similarity_id.append(filename_list[idx])
                     best_similarity_idx = similarity_idx
-                    print(similarity_matrix)
-                    print(best_similarity_matrix)
-                    print(best_similarity_idx)
                 else:
+                    similarity_id = []
                     for j in range(5):
                         if similarity_idx[0][j] < 5:
+                            similarity_id.append(best_similarity_id[similarity_idx[0][j]])
                             similarity_idx[0][j] = best_similarity_idx[0][similarity_idx[0][j]]
                         else:
-                            similarity_idx[0][j] += i * 32 - 5
-                best_similarity_idx = similarity_idx
+                            similarity_id.append(filename_list[similarity_idx[0][j] - 5])
+                            similarity_idx[0][j] += i * 512 - 5
+                    best_similarity_idx = similarity_idx
+                    best_similarity_id = similarity_id
+                if i % 10 == 0:
+                    print(i, similarity_idx, best_similarity_matrix)
+                    print(best_similarity_idx, best_similarity_id)
                 del images, image_features, similarity_matrix, similarity_idx
                 torch.cuda.empty_cache()
                 if i % 10 == 0:
@@ -145,9 +153,10 @@ def get_dress():
                         best_similarity_matrix = top_similarity_matrix
                         best_similarity_idx = i * 64 + top_similarity_idx
                         best_similarity_id = filename_list[top_similarity_idx]
-            
+            best_similarity_matrix, best_similarity_idx = all_similarity_matrix.topk(5)
         print("best:", best_similarity_matrix, best_similarity_idx)
-        best_similarity_id = demo_dataset.img_list[best_similarity_idx[0][0]]
+        best_similarity_id = all_file_name_list[best_similarity_idx[0][0]]
+        #best_similarity_id = demo_dataset.img_list[best_similarity_idx[0][0]]
         result = {
             "new_image": best_similarity_id,
             "new_turn": False
