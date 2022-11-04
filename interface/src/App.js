@@ -16,7 +16,7 @@ function App() {
   const [voice, setVoice] = useState("");
   const [log, setLog] = useState([]);
   const [recommends, setRecommends] = useState([]);
-  const [showRecommends, setShowRecommends] = useState(true);
+  const [count, setCount] = useState(0);
 
   const refFirstRef = useRef(true);
   const recommendsRef = useRef < HTMLDivElement > (false);
@@ -123,7 +123,22 @@ function App() {
     await axios.get(url)
       .then((responseTrans) => {
         console.log(responseTrans.data["translations"][0]["text"]);
-        const modifierEng = responseTrans.data["translations"][0]["text"]
+        const modifierEng = responseTrans.data["translations"][0]["text"];
+        console.log(modifierEng)
+        const modifierForNewTurn = ["This is good.", "I like this one.", "I like this dress."];
+        console.log(modifierForNewTurn.includes(modifierEng))
+        if (modifierForNewTurn.includes(modifierEng)) {
+          setCount(count + 1);
+          console.log(count);
+          if (count >= 2) {
+            getRecommendation();
+            setCount(0);
+            setVoice("こちらもおすすめです");
+            if (voice == "こちらもおすすめです") speechText();
+            setRecognitionStatus("認識開始");
+            return
+          }
+        }
         const postData = {
           "modifier": modifierEng,
           "image_path": image
@@ -134,13 +149,15 @@ function App() {
         const result = axios.post(postUrl, postData)
           .then((responseImage) => {
             console.log(responseImage.data);
-            addLog(responseImage.data)
-            if (responseImage.data["new_turn"]) addFavoriteDress(image);
+            addLog(responseImage.data);
+            if (responseImage.data["new_turn"]) {
+              addFavoriteDress(image);
+            }
             setImage(responseImage.data["new_image"]);
             setLoading(false);
             setVoice("こちらはどうですか？");
             if (voice == "こちらはどうですか？") speechText();
-            setRecognitionStatus("認識開始")
+            setRecognitionStatus("認識開始");
           })
           .catch((errorImage) => {
             console.log(errorImage);
@@ -163,6 +180,7 @@ function App() {
     const url = 'http://127.0.0.1:49876/favorite';
     await axios.get(url)
       .then((responseRecommend) => {
+        setLoading(false);
         console.log(responseRecommend.data['estimation']);
         setRecommends(responseRecommend.data['estimation']);
       })
@@ -171,7 +189,6 @@ function App() {
   useEffect(() => {
     const handleClickToCloseRecommends = (event: any) => {
       const element = recommendsRef.current;
-      console.log(showRecommends)
       if (element?.contains(event.target)) return;
       setRecommends([]);
     };
@@ -180,7 +197,7 @@ function App() {
     return () => {
       window.removeEventListener("click", handleClickToCloseRecommends);
     };
-  }, [showRecommends, recommendsRef]);
+  }, [recommendsRef]);
 
   return (
     <Container>
