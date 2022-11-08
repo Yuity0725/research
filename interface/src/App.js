@@ -63,7 +63,7 @@ function App() {
 
   // 新しい画像を取得
   const getNewImage = async () => {
-    await axios.get("http://127.0.0.1:49876/dress")
+    await axios.get("http://127.0.0.1:49876/dress/start")
       .then((response) => {
         setImage(response.data)
         console.log(response.data)
@@ -112,9 +112,10 @@ function App() {
     setRecognitionStatus("認識中");
   }
 
-  // 通信
+  // JPtext→ENtext→image
   const API_KEY = "cd70e208-d0a2-597a-fe54-4d45b34e3556:fx"
   const API_URL = "https://api-free.deepl.com/v2/translate"
+
   const submitText = async () => {
     console.log(modifier)
     let content = encodeURI('auth_key=' + API_KEY + '&text=' + modifier + '&source_lang=JA&target_lang=EN');
@@ -125,44 +126,49 @@ function App() {
         console.log(responseTrans.data["translations"][0]["text"]);
         const modifierEng = responseTrans.data["translations"][0]["text"];
         console.log(modifierEng)
-        const modifierForNewTurn = ["This is good.", "I like this one.", "I like this dress."];
         console.log(modifierForNewTurn.includes(modifierEng))
-        if (modifierForNewTurn.includes(modifierEng)) {
-          setCount(count + 1);
-          console.log(count);
-          if (count >= 2) {
-            getRecommendation();
-            setCount(0);
-            setVoice("こちらもおすすめです");
-            if (voice == "こちらもおすすめです") speechText();
-            setRecognitionStatus("認識開始");
-            return
-          }
-        }
-        const postData = {
-          "modifier": modifierEng,
-          "image_path": image
-        }
-        console.log(postData);
-        addLog(postData);
-        const postUrl = "http://127.0.0.1:49876/dress"
-        const result = axios.post(postUrl, postData)
-          .then((responseImage) => {
-            console.log(responseImage.data);
-            addLog(responseImage.data);
-            if (responseImage.data["new_turn"]) {
-              addFavoriteDress(image);
+        switch (modifierEng) {
+          case "This is good.":
+          case "I like this one.":
+          case "I like this dress.":
+            setCount(count + 1);
+            console.log(count);
+            if (count >= 2) {
+              getRecommendation();
+              setCount(0);
+              setVoice("こちらもおすすめです");
+              if (voice == "こちらもおすすめです") speechText();
+              setRecognitionStatus("認識開始");
+              return
             }
-            setImage(responseImage.data["new_image"]);
-            setLoading(false);
-            setVoice("こちらはどうですか？");
-            if (voice == "こちらはどうですか？") speechText();
-            setRecognitionStatus("認識開始");
-          })
-          .catch((errorImage) => {
-            console.log(errorImage);
-            addLog(errorImage)
-          })
+            break
+
+          default:
+            const postData = {
+              "modifier": modifierEng,
+              "image_path": image
+            }
+            console.log(postData);
+            addLog(postData);
+            const postUrl = "http://127.0.0.1:49876/dress"
+            const result = axios.post(postUrl, postData)
+              .then((responseImage) => {
+                console.log(responseImage.data);
+                addLog(responseImage.data);
+                if (responseImage.data["new_turn"]) {
+                  addFavoriteDress(image);
+                }
+                setImage(responseImage.data["new_image"]);
+                setLoading(false);
+                setVoice("こちらはどうですか？");
+                if (voice == "こちらはどうですか？") speechText();
+                setRecognitionStatus("認識開始");
+              })
+              .catch((errorImage) => {
+                console.log(errorImage);
+                addLog(errorImage)
+              })
+        }
       }).catch((errorTrans) => {
         console.log("Could not reach the API: ");
         console.log(errorTrans.message);
