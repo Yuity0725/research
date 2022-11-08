@@ -126,11 +126,14 @@ function App() {
         console.log(responseTrans.data["translations"][0]["text"]);
         const modifierEng = responseTrans.data["translations"][0]["text"];
         console.log(modifierEng)
-        console.log(modifierForNewTurn.includes(modifierEng))
+        const postData = {
+          "modifier": modifierEng,
+          "image_path": image
+        }
         switch (modifierEng) {
           case "This is good.":
           case "I like this one.":
-          case "I like this dress.":
+          case "I like this dress.": {
             setCount(count + 1);
             console.log(count);
             if (count >= 2) {
@@ -141,13 +144,30 @@ function App() {
               setRecognitionStatus("認識開始");
               return
             }
+            console.log(postData);
+            addLog(postData);
+            const postUrl = "http://127.0.0.1:49876/dress/new_turn"
+            const result = axios.post(postUrl, postData)
+              .then((responseImage) => {
+                console.log(responseImage.data);
+                addLog(responseImage.data);
+                if (responseImage.data["new_turn"]) {
+                  addFavoriteDress(image);
+                }
+                setImage(responseImage.data["new_image"]);
+                setLoading(false);
+                setVoice("こちらはどうですか？");
+                if (voice == "こちらはどうですか？") speechText();
+                setRecognitionStatus("認識開始");
+              })
+              .catch((errorImage) => {
+                console.log(errorImage);
+                addLog(errorImage)
+              })
             break
+          }
 
           default:
-            const postData = {
-              "modifier": modifierEng,
-              "image_path": image
-            }
             console.log(postData);
             addLog(postData);
             const postUrl = "http://127.0.0.1:49876/dress"
