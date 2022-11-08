@@ -63,7 +63,7 @@ function App() {
 
   // 新しい画像を取得
   const getNewImage = async () => {
-    await axios.get("http://127.0.0.1:49876/dress/start")
+    await axios.get("http://0.0.0.0:49876/dress/start")
       .then((response) => {
         setImage(response.data)
         console.log(response.data)
@@ -146,7 +146,7 @@ function App() {
             }
             console.log(postData);
             addLog(postData);
-            const postUrl = "http://127.0.0.1:49876/dress/new_turn"
+            const postUrl = "http://0.0.0.0:49876/dress/new_turn"
             const result = axios.post(postUrl, postData)
               .then((responseImage) => {
                 console.log(responseImage.data);
@@ -170,7 +170,7 @@ function App() {
           default:
             console.log(postData);
             addLog(postData);
-            const postUrl = "http://127.0.0.1:49876/dress"
+            const postUrl = "http://0.0.0.0:49876/dress"
             const result = axios.post(postUrl, postData)
               .then((responseImage) => {
                 console.log(responseImage.data);
@@ -203,7 +203,7 @@ function App() {
   // 好み推定
   const getRecommendation = async () => {
     console.log(recommends)
-    const url = 'http://127.0.0.1:49876/favorite';
+    const url = 'http://0.0.0.0:49876/favorite';
     await axios.get(url)
       .then((responseRecommend) => {
         setLoading(false);
