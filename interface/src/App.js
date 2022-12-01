@@ -8,6 +8,7 @@ import { Col, Container, Row, Table } from 'react-bootstrap'
 function App() {
 
   const [modifier, setModifier] = useState("");
+  const [candidates, setCandidates] = useState(["B008E5Q0LG", "B00C45JBVI", "B002UNLW7K", "B00A2YDSXU", "B0035WTT2A"])
   const [image, setImage] = useState("");
   const [favoriteDresses, setFavoriteDress] = useState([]);
   const [recognitionStatus, setRecognitionStatus] = useState("認識開始");
@@ -54,7 +55,8 @@ function App() {
 
     if (modifier.length === 0) {
       // 読み込み時
-      getNewImage();
+      // TODO tarsが直ったらコメントアウトを消す
+      //getNewImage();
     } else {
       // 更新時
       submitText();
@@ -213,7 +215,7 @@ function App() {
   }
 
   useEffect(() => {
-    const handleClickToCloseRecommends = (event: any) => {
+    const handleClickToCloseRecommends = (event) => {
       const element = recommendsRef.current;
       if (element?.contains(event.target)) return;
       setRecommends([]);
@@ -234,32 +236,38 @@ function App() {
           </div>
           <div className="loader" style={{ visibility: loading ? "visible" : "hidden" }}>Loading...</div>
           <div id="main" className="App" style={{ visibility: visible ? "visible" : "hidden" }}>
-            <Container>
-              <Row>
-                <Col className='questionArea'>
-                  <p>{voice}</p>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={{ span: 6, offset: 2 }} className="suggestion" >
-                  <img src={`${process.env.PUBLIC_URL}/images/${image}.png`} alt="suggestion" />
-                </Col>
-                <Col md={{ span: 2, offset: 8 }} className='modifierArea'>
-                  <button onClick={recognize}>{recognitionStatus}</button>
-                </Col>
-              </Row>
-              <Row>
+            <Row>
+              <Col className='questionArea'>
+                <p>{voice}</p>
+              </Col>
+            </Row>
+            <Row>
+              <Col md={{ span: 3 }}></Col>
+              <Col className="suggestion" >
+                {candidates.map((candidate) =>
+                  <img src={`${process.env.PUBLIC_URL}/images/${candidate}.png`} alt="suggestion" />
+                )}
+              </Col>
+            </Row>
+            <Row>
+            </Row>
+            <Row>
+              <Col md={{ span: 4 }}>
                 <button onClick={getRecommendation}>おすすめを見る</button>
-                <Recommend recommends={recommends} />
-              </Row>
-              <Row className='favoriteArea'>
-                <Col md={{ span: 8, offset: 2 }}>
-                  {favoriteDresses.map((favoriteDress) =>
-                    <img src={`${process.env.PUBLIC_URL}/images/${favoriteDress}.png`} alt="suggestion" key={favoriteDress} className="favorite" />
-                  )}
-                </Col>
-              </Row>
-            </Container>
+              </Col>
+              <Col></Col>
+              <Col md={{ span: 4 }}>
+                <button onClick={recognize} className="recognize">{recognitionStatus}</button>
+              </Col>
+              <Recommend recommends={recommends} />
+            </Row>
+            <Row className='favoriteArea'>
+              <Col md={{ span: 8, offset: 2 }}>
+                {favoriteDresses.map((favoriteDress) =>
+                  <img src={`${process.env.PUBLIC_URL}/images/${favoriteDress}.png`} alt="suggestion" key={favoriteDress} className="favorite" />
+                )}
+              </Col>
+            </Row>
           </div>
         </Col>
         <Col md={4} style={{ height: screenHeight }} className='logArea'>

@@ -144,8 +144,11 @@
 }
 
 .suggestion img {
+  /*
   height: 448px;
-
+  */
+  height: 224px;
+  border: 1px solid lightgray !important;
 }
 
 .modifierArea {
@@ -177,4 +180,8 @@
   height: 320px;
   margin: 2px;
   border: 1px solid lightgray !important;
+}
+
+.recognize {
+  text-align: right;
 }
