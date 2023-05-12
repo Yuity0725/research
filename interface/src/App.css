@@ -143,12 +143,19 @@
   text-align: center;
 }
 
+.history {
+  height: 48px;
+  border: 1px solid lightgray !important;
+}
+
 .suggestion img {
-  /*
-  height: 448px;
-  */
   height: 224px;
   border: 1px solid lightgray !important;
+}
+
+.target img {
+  height: 448px;
+  order: 1px solid lightgray !important;
 }
 
 .modifierArea {

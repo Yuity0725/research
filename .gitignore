@@ -182,3 +182,4 @@ interface/public/images/
 *.PNG
 *.jpg
 *.JPG
+.DS_Store

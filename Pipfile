@@ -46,6 +46,7 @@ black = "*"
 flask-cors = "*"
 pillow = "==6.1.0"
 click = "*"
+scikit-learn = "*"
 
 [dev-packages]
 

@@ -1,6 +1,6 @@
 import './App.css';
 
-import React, { useEffect, useRef, useState, } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Col, Container, Row, Table } from 'react-bootstrap'
@@ -8,8 +8,10 @@ import { Col, Container, Row, Table } from 'react-bootstrap'
 function App() {
 
   const [modifier, setModifier] = useState("");
-  const [candidates, setCandidates] = useState(["B008E5Q0LG", "B00C45JBVI", "B002UNLW7K", "B00A2YDSXU", "B0035WTT2A"])
-  const [image, setImage] = useState("");
+  const [targetImage, setTargetImage] = useState("");
+  const [history, setHistory] = useState([]);
+  const [candidates, setCandidates] = useState([])
+  const [image, setImage] = useState([]);
   const [favoriteDresses, setFavoriteDress] = useState([]);
   const [recognitionStatus, setRecognitionStatus] = useState("認識開始");
   const [visible, setVisible] = useState(false);
@@ -21,6 +23,7 @@ function App() {
 
   const refFirstRef = useRef(true);
   const recommendsRef = useRef < HTMLDivElement > (false);
+  const inputRef = useRef(null);
 
   // stateをセット
   const handleVisible = () => {
@@ -53,23 +56,25 @@ function App() {
       }
     }
 
+    console.log(modifier)
     if (modifier.length === 0) {
       // 読み込み時
-      // TODO tarsが直ったらコメントアウトを消す
-      //getNewImage();
+      getNewImage();
     } else {
       // 更新時
       submitText();
     }
   }
 
-  // 新しい画像を取得
+  // 開始画像を取得
   const getNewImage = async () => {
     await axios.get("http://0.0.0.0:49876/dress/start")
       .then((response) => {
-        setImage(response.data)
+        setImage([response.data])
+        setCandidates([])
         console.log(response.data)
         addLog(response.data);
+        setHistory([...history, [response.data]])
       })
   }
 
@@ -130,7 +135,7 @@ function App() {
         console.log(modifierEng)
         const postData = {
           "modifier": modifierEng,
-          "image_path": image
+          "image_path": image[0]
         }
         switch (modifierEng) {
           case "This is good.":
@@ -156,7 +161,9 @@ function App() {
                 if (responseImage.data["new_turn"]) {
                   addFavoriteDress(image);
                 }
-                setImage(responseImage.data["new_image"]);
+                setImage([responseImage.data["new_image"]]);
+                setCandidates([])
+                setHistory([...history, [responseImage.data["new_image"]]])
                 setLoading(false);
                 setVoice("こちらはどうですか？");
                 if (voice == "こちらはどうですか？") speechText();
@@ -168,7 +175,6 @@ function App() {
               })
             break
           }
-
           default:
             console.log(postData);
             addLog(postData);
@@ -177,10 +183,10 @@ function App() {
               .then((responseImage) => {
                 console.log(responseImage.data);
                 addLog(responseImage.data);
-                if (responseImage.data["new_turn"]) {
-                  addFavoriteDress(image);
-                }
-                setImage(responseImage.data["new_image"]);
+                if (responseImage.data["new_turn"]) addFavoriteDress(image);
+                setCandidates(responseImage.data["new_image"]);
+                setImage([]);
+                setHistory([...history, responseImage.data["new_image"]])
                 setLoading(false);
                 setVoice("こちらはどうですか？");
                 if (voice == "こちらはどうですか？") speechText();
@@ -227,6 +233,12 @@ function App() {
     };
   }, [recommendsRef]);
 
+  // 文字で入力
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setModifier(inputRef.current.value)
+  }
+
   return (
     <Container>
       <Row>
@@ -242,14 +254,56 @@ function App() {
               </Col>
             </Row>
             <Row>
-              <Col md={{ span: 3 }}></Col>
-              <Col className="suggestion" >
-                {candidates.map((candidate) =>
-                  <img src={`${process.env.PUBLIC_URL}/images/${candidate}.png`} alt="suggestion" />
+              <Col md={{ span: 4 }}>
+                {history.map((images) =>
+                  <Row>
+                    {images.map((image) =>
+                      <img
+                        src={`${process.env.PUBLIC_URL}/images/${image}.png`}
+                        alt={image}
+                        className='history'
+                        onClick={(e) => {
+                          console.log(e.currentTarget.alt)
+                          setImage([e.currentTarget.alt])
+                          setCandidates([])
+                          setVoice("このドレスはどうですか？")
+                        }}
+                      />
+                    )}
+                  </Row>
                 )}
+              </Col>
+              <Col>
+                <Row>
+                  <Col className="suggestion" >
+                    {candidates.map((candidate) =>
+                      <img
+                        src={`${process.env.PUBLIC_URL}/images/${candidate}.png`}
+                        alt={candidate}
+                        onClick={(e) => {
+                          console.log(e.currentTarget.alt)
+                          setImage([e.currentTarget.alt])
+                          setCandidates([])
+                          setVoice("このドレスはどうですか？")
+                        }}
+                      />
+                    )}
+                  </Col>
+                </Row>
+                <Row>
+                  <Col className='target'>
+                    {image.map((i) =>
+                      <img
+                        src={`${process.env.PUBLIC_URL}/images/${i}.png`}
+                        alt={i}
+                      />
+                    )}
+                  </Col>
+                </Row>
               </Col>
             </Row>
             <Row>
+              <TargetImage targetImage={targetImage} />
             </Row>
             <Row>
               <Col md={{ span: 4 }}>
@@ -260,6 +314,14 @@ function App() {
                 <button onClick={recognize} className="recognize">{recognitionStatus}</button>
               </Col>
               <Recommend recommends={recommends} />
+            </Row>
+            <Row className='debugInput'>
+              <input
+                ref={inputRef}
+                type={"text"}
+                name={"input"}
+              />
+              <button onClick={handleSubmit} >送信</button>
             </Row>
             <Row className='favoriteArea'>
               <Col md={{ span: 8, offset: 2 }}>
@@ -304,6 +366,21 @@ const Recommend = (props) => {
       }
     </div>
   )
+}
+
+const TargetImage = (props) => {
+  console.log(props.targetImage)
+  if (props.targetImage == "") return
+  else {
+    return (
+      <div>
+        <img
+          src={`${process.env.PUBLIC_URL}/images/${props.targetImage}.png`}
+          alt="target"
+        />
+      </div>
+    )
+  }
 }
 
 export default App;
