@@ -15,6 +15,8 @@ def _get_img_list(clothing_type):
         img_list += json.load(json_file)
     with open(os.path.join('../FashionIQ_dataset', 'image_splits', 'split.{}.train.json'.format(clothing_type))) as json_file:
         img_list += json.load(json_file)
+    with open(os.path.join('../FashionIQ_dataset', 'image_splits', 'split.{}.val.json'.format(clothing_type))) as json_file:
+        img_list += json.load(json_file)
     return img_list
 
 
@@ -42,7 +44,7 @@ def _get_img_path_using_idx(img_caption_data, img_root, idx, is_ref=True):
 def demo_dataloader_factory(dataset, config, collate_fn=None):
     batch_size = 512
     num_workers = config.get('num_workers', 16)
-    shuffle = config.get('shuffle', True)
+    shuffle = False
 
     return DataLoader(dataset, batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=True,
                       collate_fn=collate_fn, drop_last=False)
