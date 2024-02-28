@@ -183,3 +183,7 @@ interface/public/images/
 *.jpg
 *.JPG
 .DS_Store
+
+# analysis
+*.pkl
+*.npy
